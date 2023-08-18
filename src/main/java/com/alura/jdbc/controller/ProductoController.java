@@ -2,7 +2,6 @@ package com.alura.jdbc.controller;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,7 +20,7 @@ public class ProductoController {
 		// TODO
 	}
 
-	public List<?> listar() throws SQLException {
+	public List<Map<String, String>> listar() throws SQLException {
 		Connection con = DriverManager.getConnection(
 				"jdbc:mysql://localhost/control_de_stock?useTimeZone=true&serverTimeZone=UTC", 
 				"root", 
