@@ -10,6 +10,6 @@ public class ConnectionFactory {
 		return  DriverManager.getConnection(
                 "jdbc:mysql://localhost/control_de_stock?useTimeZone=true&serverTimeZone=UTC",
                 "root",
-                "1224");
+                "root");
 	}
 }

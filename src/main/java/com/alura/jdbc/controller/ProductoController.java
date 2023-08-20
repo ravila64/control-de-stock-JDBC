@@ -13,12 +13,27 @@ import com.alura.jdbc.factory.ConnectionFactory;
 
 public class ProductoController {
 
-	public void modificar(String nombre, String descripcion, Integer id) {
-		// TODO
+	public int modificar(Integer id, String nombre, String descripcion,Integer cantidad) throws SQLException {
+		Connection con = new ConnectionFactory().recuperaConexion();
+		Statement statement = con.createStatement();
+		statement.execute("UPDATE PRODUCTO SET "
+				+ " NOMBRE = '"+nombre+ "'"
+				+ ", DESCRIPCION = '"+descripcion+"'"
+				+ ", CANTIDAD = "+cantidad 
+				+ " WHERE ID = " + id);
+		int updateCount = statement.getUpdateCount(); // cuantas filas modificadas update==1
+		con.close();
+		return updateCount;
 	}
 
-	public void eliminar(Integer id) {
-		// TODO
+	// se cambio void por int, porque tiene return
+	public int eliminar(Integer id) throws SQLException {
+		Connection con = new ConnectionFactory().recuperaConexion();
+		Statement statement = con.createStatement();
+		statement.execute("DELETE FROM PRODUCTO  WHERE ID = "+id);
+		int updateCount = statement.getUpdateCount(); // cuantas filas modificadas delete==1
+		con.close();
+		return updateCount;
 	}
 
 	public List<Map<String, String>> listar() throws SQLException {
@@ -31,9 +46,7 @@ public class ProductoController {
 		
 		//PreparedStatement statement = con.prepareStatement(SQL);
 		Statement statement = con.createStatement();
-		
 		statement.execute(SQL);
-		
 		ResultSet resultSet = statement.getResultSet() ;
 		
 		List<Map<String, String>> resultado = new ArrayList<>();
@@ -55,17 +68,24 @@ public class ProductoController {
 	public void guardar(Map<String, String> producto) throws SQLException {
 		Connection con = new ConnectionFactory().recuperaConexion();	
 		Statement statement = con.createStatement();
-		String sql = "INSERT INTO PRODUCTO (nombre, descripcion, cantidad) "
-		+"VALUES ('"+producto.get("NOMBRE")+"','"
-		+producto.get("DESCRIPCION")+"',"
-		+producto.get("CANTIDAD"), Statement.RETURN_GENERATED_KEYS;
+//		String sql = "INSERT INTO PRODUCTO (nombre, descripcion, cantidad) "
+//		+"VALUES('" + producto.get("NOMBRE") + "', '"
+//		+producto.get("DESCRIPCION")+"', "
+//		+producto.get("CANTIDAD")+ ")"+ ",Statement.RETURN_GENERATED_KEYS+')";
+		statement.execute("INSERT INTO PRODUCTO (nombre, descripcion, cantidad) "
+				+"VALUES('" + producto.get("NOMBRE") + "', '"
+				+producto.get("DESCRIPCION")+"', "
+				+producto.get("CANTIDAD")+ ")" , Statement.RETURN_GENERATED_KEYS);
 		ResultSet resultSet = statement.getGeneratedKeys();
-		System.out.println("ResulSet "+resultSet+ "\n"+"SQL "+sql);
-		//satement.execute(sql);
+		//System.out.println("ResulSet "+resultSet+ "\n"+"SQL "+sql);
+//		System.out.println("SQL: "+sql);
+		//statement.execute(sql);
+		//System.out.println("ResulSet "+resultSet.getInt(1));
 		while (resultSet.next()) {
 			System.out.println(String.format("Fue insertado el producto ID %d ", resultSet.getInt(1)));
 		}
-		
+		resultSet.close();
+		con.close();   // coloque cierre BD new
 	}
 
 }
