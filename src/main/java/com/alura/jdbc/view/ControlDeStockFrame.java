@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -35,7 +34,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 
 	public ControlDeStockFrame() {
 		super("Productos");
-		// initComponents();
+		//initComponents();
 		this.categoriaController = new CategoriaController();
 		this.productoController = new ProductoController();
 
@@ -181,8 +180,11 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(this, "Por favor, elije un item");
 			return;
 		}
-	
-		Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
+		try {
+			Integer row=tabla.getSelectedRow();
+			Integer column=tabla.getSelectedColumn();
+			if ((row!=null) & (column!=null)){
+				Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
 				.ifPresentOrElse(fila -> {
 					//Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
 					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
@@ -198,10 +200,14 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 						//e.printStackTrace();
 						throw new RuntimeException(e);
 					}
-			    //  JOptionPane.showMessageDialog(this, cantidadUpdated+" Item Actualizado con éxito!");
+					//  JOptionPane.showMessageDialog(this, cantidadUpdated+" Item Actualizado con éxito!");
 					JOptionPane.showMessageDialog(this, String.format("%d item modificado con éxito!", cantidadUpdated));
 					
 				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void llenarCasillas(String nombre, String descripcion, Integer cantidad) {
