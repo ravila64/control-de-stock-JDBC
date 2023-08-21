@@ -5,12 +5,22 @@ public class Producto {
 	private String nombre;
 	private String descripcion;
 	private Integer cantidad;
+	
 	public Producto(String nombre, String descripcion, Integer cantidad) {
 		//super();
 		this.nombre = nombre;
 		this.descripcion = descripcion;
 		this.cantidad = cantidad;
 	}
+
+	public Producto(Integer id, String nombre, String descripcion, Integer cantidad) {
+		//super();
+		this.id = id;
+		this.nombre = nombre;
+		this.descripcion = descripcion;
+		this.cantidad = cantidad;
+	}
+	
 	// getters
 	public String getNombre() {
 		return nombre;
@@ -21,6 +31,11 @@ public class Producto {
 	public Integer getCantidad() {
 		return cantidad;
 	}
+	
+	public Integer getId() {
+		return id;
+	}
+
 	//SETTERS
 	public void setId(Integer id) {
 		this.id = id;

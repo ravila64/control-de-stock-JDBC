@@ -17,13 +17,17 @@ public class ConnectionFactory {
 		var pooledDataSource = new ComboPooledDataSource();
 		pooledDataSource.setJdbcUrl("jdbc:mysql://localhost/control_de_stock?useTimeZone=true&serverTimeZone=UTC");
 		pooledDataSource.setUser("root");
-		pooledDataSource.setPassword("");
+		pooledDataSource.setPassword("1224");
 		pooledDataSource.setMaxPoolSize(10);  // 10 conexiones
 		this.datasource = pooledDataSource;
 	}
 	
-	public Connection recuperaConexion() throws SQLException {
-		return  this.datasource.getConnection();
+	public Connection recuperaConexion() {
+		try {
+			return  this.datasource.getConnection();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 }

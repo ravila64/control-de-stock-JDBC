@@ -5,7 +5,10 @@ import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.swing.JButton;
@@ -35,7 +38,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 
 	public ControlDeStockFrame() {
 		super("Productos");
-		//initComponents();
+		// initComponents();
 		this.categoriaController = new CategoriaController();
 		this.productoController = new ProductoController();
 
@@ -182,29 +185,31 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 			return;
 		}
 		try {
-			Integer row=tabla.getSelectedRow();
-			Integer column=tabla.getSelectedColumn();
-			if ((row!=null) & (column!=null)){
+			Integer row = tabla.getSelectedRow();
+			Integer column = tabla.getSelectedColumn();
+			if ((row != null) & (column != null)) {
 				Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
-				.ifPresentOrElse(fila -> {
-					//Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
-					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-					String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
-					String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
-					Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
-					llenarCasillas(nombre, descripcion,cantidad);
-					int cantidadUpdated = 0;
-					try {
-						cantidadUpdated = this.productoController.modificar(nombre, descripcion, cantidad,id);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						//e.printStackTrace();
-						throw new RuntimeException(e);
-					}
-					//  JOptionPane.showMessageDialog(this, cantidadUpdated+" Item Actualizado con éxito!");
-					JOptionPane.showMessageDialog(this, String.format("%d item modificado con éxito!", cantidadUpdated));
-					
-				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+						.ifPresentOrElse(fila -> {
+							// Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
+							Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
+							String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
+							String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
+							Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
+							llenarCasillas(nombre, descripcion, cantidad);
+							int cantidadUpdated = 0;
+							try {
+								cantidadUpdated = this.productoController.modificar(nombre, descripcion, cantidad, id);
+							} catch (SQLException e) {
+								// TODO Auto-generated catch block
+								// e.printStackTrace();
+								throw new RuntimeException(e);
+							}
+							// JOptionPane.showMessageDialog(this, cantidadUpdated+" Item Actualizado con
+							// éxito!");
+							JOptionPane.showMessageDialog(this,
+									String.format("%d item modificado con éxito!", cantidadUpdated));
+
+						}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
 			e.printStackTrace();
@@ -216,7 +221,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 		this.textoDescripcion.setText(descripcion);
 		this.textoCantidad.setText(cantidad.toString());
 	}
-	
+
 	private void eliminar() {
 		if (tieneFilaElegida()) {
 			JOptionPane.showMessageDialog(this, "Por favor, elije un item");
@@ -227,7 +232,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 				.ifPresentOrElse(fila -> {
 					// Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
 					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-					int cantidadEliminada=0;
+					int cantidadEliminada = 0;
 					try {
 						cantidadEliminada = this.productoController.eliminar(id);
 					} catch (SQLException e) {
@@ -238,23 +243,18 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 
 					modelo.removeRow(tabla.getSelectedRow());
 
-					JOptionPane.showMessageDialog(this, cantidadEliminada+" Item eliminado con éxito!");
-					
+					JOptionPane.showMessageDialog(this, cantidadEliminada + " Item eliminado con éxito!");
+
 				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
 	}
 
 	private void cargarTabla() {
-		try {
-			var productos = this.productoController.listar();
-			try {
-				productos.forEach(producto -> modelo.addRow(new Object[] { producto.get("ID"), producto.get("NOMBRE"),
-						producto.get("DESCRIPCION"), producto.get("CANTIDAD") }));
-			} catch (Exception e) {
-				throw e;
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException(e); // new RuntimeException(e);
-		}
+		// List<Map<String, String>> productos= new ArrayList()<Map<String, String>>();
+		var productos = this.productoController.listar();
+
+		productos.forEach(producto -> modelo.addRow(new Object[] { producto.getId(), producto.getNombre(),
+				producto.getDescripcion(), producto.getCantidad() }));
+
 	}
 
 	private void guardar() {
@@ -278,18 +278,13 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 //		producto.put("DESCRIPCION", textoDescripcion.getText());
 //		producto.put("CANTIDAD", String.valueOf(cantidadInt));
 
-		var producto = new Producto(textoNombre.getText(),textoDescripcion.getText(),cantidadInt);
-		
+		var producto = new Producto(textoNombre.getText(), textoDescripcion.getText(), cantidadInt);
+
 		// var producto = new Object[] { textoNombre.getText(),
 		// textoDescripcion.getText(), cantidadInt };
 		var categoria = comboCategoria.getSelectedItem();
 
-		try {
-			this.productoController.guardar(producto);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.productoController.guardar(producto);
 
 		JOptionPane.showMessageDialog(this, "Registrado con éxito!");
 
