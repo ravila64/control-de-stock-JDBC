@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.modelo.Producto;
 
 public class ProductoController {
 
@@ -34,7 +35,6 @@ public class ProductoController {
 				return updateCount;
 			}
 		}
-		
 	}
 
 	// se cambio void por int, porque tiene return
@@ -85,12 +85,13 @@ public class ProductoController {
 	}
 
 	// Object producto, SE CAMBIA POR HASHMAP
-	public void guardar(Map<String, String> producto) throws SQLException {
-		String nombre = producto.get("NOMBRE");
-		String descripcion = producto.get("DESCRIPCION");
-		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
-		Integer maxCantidad = 50;
-		int cantGuardar = 0;
+	// luego se cambio hashMap por la clase producto
+	//                  Map<String, String> x la clase Producto
+	public void guardar(Producto producto) throws SQLException {
+//		String nombre = producto.getNombre();
+//		String descripcion = producto.getDescripcion();
+//		Integer cantidad = producto.getCantidad();
+//		Integer maxCantidad = 50; int cantGuardar = 0;
 
 		ConnectionFactory factory = new ConnectionFactory();
 		final Connection con = factory.recuperaConexion();
@@ -100,12 +101,14 @@ public class ProductoController {
 					"INSERT INTO PRODUCTO " + "(nombre, descripcion, cantidad)" + " VALUES (?,?,?)",
 					Statement.RETURN_GENERATED_KEYS);
 			try (stmt) {
-				do {
-					cantGuardar = Math.min(cantidad, maxCantidad);
-					// control + 1 = para extraer variables locales
-					ejecutaRegistro(nombre, descripcion, cantidad, stmt);
-					cantidad -= maxCantidad;
-				} while (cantidad > 0);
+//				do {
+//					cantGuardar = Math.min(cantidad, maxCantidad);
+//					// control + 1 = para extraer variables locales
+//					// ejecutaRegistro(nombre, descripcion, cantidad, stmt);
+					ejecutaRegistro(producto, stmt); // se deja producto y el statement
+//					// ojo con cantGuardar
+//					cantidad -= maxCantidad;
+//				} while (cantidad > 0);
 				con.commit(); // todos comandos del loop sean ejecutados
 				System.out.println("Commit ejecutado");
 			} catch (Exception e) {
@@ -118,21 +121,23 @@ public class ProductoController {
 		// se quita close() porque tiene try(con){}
 	}
 
-	private void ejecutaRegistro(String nombre, String descripcion, Integer cantidad, PreparedStatement stmt)
+	//                          se recibe con la clase Producto
+	private void ejecutaRegistro(Producto producto, PreparedStatement stmt)
 			throws SQLException {
 		// error que se coloco para ver el funcionamiento del ROLLBACK()
 //		if (cantidad<50) {
 //			throw new RuntimeException("Ocurrio un error...");
 //		}
-		stmt.setString(1, nombre);
-		stmt.setString(2, descripcion);
-		stmt.setInt(3, cantidad);
+		stmt.setString(1, producto.getNombre());
+		stmt.setString(2, producto.getDescripcion());
+		stmt.setInt(3, producto.getCantidad());
 		stmt.execute();
 		final ResultSet resultSet = stmt.getGeneratedKeys();
 		// System.out.println("ResulSet "+resultSet.getInt(1));
 		try (resultSet) {
 			while (resultSet.next()) {
-				System.out.println(String.format("Fue insertado el producto ID %d ", resultSet.getInt(1)));
+				producto.setId(resultSet.getInt(1));
+				System.out.println(String.format("Fue insertado el producto %s ", producto));
 			}
 		} // con este try() no se necesita cerrar
 			// resultSet.close();
