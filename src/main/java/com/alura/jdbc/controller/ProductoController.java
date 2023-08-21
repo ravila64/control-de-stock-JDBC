@@ -1,6 +1,7 @@
 package com.alura.jdbc.controller;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,80 +14,128 @@ import com.alura.jdbc.factory.ConnectionFactory;
 
 public class ProductoController {
 
-	public int modificar(Integer id, String nombre, String descripcion,Integer cantidad) throws SQLException {
-		Connection con = new ConnectionFactory().recuperaConexion();
-		Statement statement = con.createStatement();
-		statement.execute("UPDATE PRODUCTO SET "
-				+ " NOMBRE = '"+nombre+ "'"
-				+ ", DESCRIPCION = '"+descripcion+"'"
-				+ ", CANTIDAD = "+cantidad 
-				+ " WHERE ID = " + id);
-		int updateCount = statement.getUpdateCount(); // cuantas filas modificadas update==1
-		con.close();
-		return updateCount;
+	public int modificar(String nombre, String descripcion, Integer cantidad, Integer id) throws SQLException {
+		
+		ConnectionFactory factory = new ConnectionFactory();
+		final Connection con = factory.recuperaConexion();
+		
+		try(con){
+			String sql = "UPDATE PRODUCTO SET " + " NOMBRE = ?" + ", DESCRIPCION = ?" 
+					+ ", CANTIDAD = ?" + " WHERE ID = ?";
+			final PreparedStatement statement = con.prepareStatement(sql);
+			try(statement){
+				statement.setString(1, nombre);
+				statement.setString(2, descripcion);
+				statement.setInt(3, cantidad);
+				statement.setInt(4, id);
+				statement.execute();
+				int updateCount = statement.getUpdateCount(); // cuantas filas modificadas update==1
+				// con.close(); suprimir este close x tener try(con) 
+				return updateCount;
+			}
+		}
+		
 	}
 
 	// se cambio void por int, porque tiene return
 	public int eliminar(Integer id) throws SQLException {
-		Connection con = new ConnectionFactory().recuperaConexion();
-		Statement statement = con.createStatement();
-		statement.execute("DELETE FROM PRODUCTO  WHERE ID = "+id);
-		int updateCount = statement.getUpdateCount(); // cuantas filas modificadas delete==1
-		con.close();
-		return updateCount;
+		ConnectionFactory factory = new ConnectionFactory();
+		final Connection con = factory.recuperaConexion();
+		try (con) {
+			// Statement statement = con.createStatement();
+			String sql = "DELETE FROM PRODUCTO WHERE ID = ?";
+			final PreparedStatement statement = con.prepareStatement(sql);
+			try (statement) {
+				statement.setInt(1, id);
+				statement.execute();
+				int updateCount = statement.getUpdateCount(); // cuantas filas modificadas delete==1
+				// con.close(); se quita con try(con) y try(statement)
+				return updateCount;
+			}
+		}
 	}
 
 	public List<Map<String, String>> listar() throws SQLException {
-		Connection con = new ConnectionFactory().recuperaConexion();
-		if (con!=null) {
-			System.out.println("CONEXION OK");
+		ConnectionFactory factory = new ConnectionFactory();
+		final Connection con = factory.recuperaConexion();
+		try (con) {
+			if (con != null) {
+				System.out.println("CONEXION OK");
+			}
+			String SQL = "SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO";
+			// Statement statement = con.createStatement();
+			final PreparedStatement statement = con.prepareStatement(SQL);
+			try (statement) {
+				statement.execute();
+				ResultSet resultSet = statement.getResultSet();
+				List<Map<String, String>> resultado = new ArrayList<>();
+				while (resultSet.next()) {
+					Map<String, String> fila = new HashMap<>();
+					fila.put("ID", String.valueOf(resultSet.getInt("ID")));
+					fila.put("NOMBRE", resultSet.getString("NOMBRE"));
+					fila.put("DESCRIPCION", resultSet.getString("DESCRIPCION"));
+					fila.put("CANTIDAD", String.valueOf(resultSet.getInt("CANTIDAD")));
+					resultado.add(fila);
+				}
+//				System.out.println("Cerrando la conexión");
+//				con.close(); no va por tener try(statement)
+				return resultado;
+			}
 		}
-	
-		String SQL = "SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO";
-		
-		//PreparedStatement statement = con.prepareStatement(SQL);
-		Statement statement = con.createStatement();
-		statement.execute(SQL);
-		ResultSet resultSet = statement.getResultSet() ;
-		
-		List<Map<String, String>> resultado = new ArrayList<>();
-		
-		while (resultSet.next()) {
-			Map<String, String> fila = new HashMap<>();
-			fila.put("ID", String.valueOf(resultSet.getInt("ID")));
-			fila.put("NOMBRE", resultSet.getString("NOMBRE"));
-			fila.put("DESCRIPCION", resultSet.getString("DESCRIPCION"));
-			fila.put("CANTIDAD", String.valueOf(resultSet.getInt("CANTIDAD")));
-			resultado.add(fila);
-		}
-		System.out.println("Cerrando la conexión");
-		con.close();
-		return resultado;
 	}
 
 	// Object producto, SE CAMBIA POR HASHMAP
 	public void guardar(Map<String, String> producto) throws SQLException {
-		Connection con = new ConnectionFactory().recuperaConexion();	
-		Statement statement = con.createStatement();
-//		String sql = "INSERT INTO PRODUCTO (nombre, descripcion, cantidad) "
-//		+"VALUES('" + producto.get("NOMBRE") + "', '"
-//		+producto.get("DESCRIPCION")+"', "
-//		+producto.get("CANTIDAD")+ ")"+ ",Statement.RETURN_GENERATED_KEYS+')";
-		statement.execute("INSERT INTO PRODUCTO (nombre, descripcion, cantidad) "
-				+"VALUES('" + producto.get("NOMBRE") + "', '"
-				+producto.get("DESCRIPCION")+"', "
-				+producto.get("CANTIDAD")+ ")" , Statement.RETURN_GENERATED_KEYS);
-		ResultSet resultSet = statement.getGeneratedKeys();
-		//System.out.println("ResulSet "+resultSet+ "\n"+"SQL "+sql);
-//		System.out.println("SQL: "+sql);
-		//statement.execute(sql);
-		//System.out.println("ResulSet "+resultSet.getInt(1));
-		while (resultSet.next()) {
-			System.out.println(String.format("Fue insertado el producto ID %d ", resultSet.getInt(1)));
+		String nombre = producto.get("NOMBRE");
+		String descripcion = producto.get("DESCRIPCION");
+		Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
+		Integer maxCantidad = 50;
+		int cantGuardar = 0;
+
+		ConnectionFactory factory = new ConnectionFactory();
+		final Connection con = factory.recuperaConexion();
+		try (con) {
+			con.setAutoCommit(false); // control transacc la tenemos nosotros
+			final PreparedStatement stmt = con.prepareStatement(
+					"INSERT INTO PRODUCTO " + "(nombre, descripcion, cantidad)" + " VALUES (?,?,?)",
+					Statement.RETURN_GENERATED_KEYS);
+			try (stmt) {
+				do {
+					cantGuardar = Math.min(cantidad, maxCantidad);
+					// control + 1 = para extraer variables locales
+					ejecutaRegistro(nombre, descripcion, cantidad, stmt);
+					cantidad -= maxCantidad;
+				} while (cantidad > 0);
+				con.commit(); // todos comandos del loop sean ejecutados
+				System.out.println("Commit ejecutado");
+			} catch (Exception e) {
+				con.rollback();
+				System.out.println("RollBack ejecutado");
+			}
 		}
-		resultSet.close();
-		con.close();   // coloque cierre BD new
+		// stmt.close(); no se necesiota por try(stmt)
+		// con.close(); // coloque cierre BD new
+		// se quita close() porque tiene try(con){}
+	}
+
+	private void ejecutaRegistro(String nombre, String descripcion, Integer cantidad, PreparedStatement stmt)
+			throws SQLException {
+		// error que se coloco para ver el funcionamiento del ROLLBACK()
+//		if (cantidad<50) {
+//			throw new RuntimeException("Ocurrio un error...");
+//		}
+		stmt.setString(1, nombre);
+		stmt.setString(2, descripcion);
+		stmt.setInt(3, cantidad);
+		stmt.execute();
+		final ResultSet resultSet = stmt.getGeneratedKeys();
+		// System.out.println("ResulSet "+resultSet.getInt(1));
+		try (resultSet) {
+			while (resultSet.next()) {
+				System.out.println(String.format("Fue insertado el producto ID %d ", resultSet.getInt(1)));
+			}
+		} // con este try() no se necesita cerrar
+			// resultSet.close();
 	}
 
 }
-

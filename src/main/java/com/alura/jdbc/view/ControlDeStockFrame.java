@@ -192,7 +192,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 					llenarCasillas(nombre, descripcion,cantidad);
 					int cantidadUpdated = 0;
 					try {
-						cantidadUpdated = this.productoController.modificar(id, nombre, descripcion, cantidad);
+						cantidadUpdated = this.productoController.modificar(nombre, descripcion, cantidad,id);
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						//e.printStackTrace();
@@ -255,9 +255,7 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(this, "Los campos Nombre y Descripción son requeridos.");
 			return;
 		}
-
 		Integer cantidadInt;
-
 		try {
 			cantidadInt = Integer.parseInt(textoCantidad.getText());
 		} catch (NumberFormatException e) {
