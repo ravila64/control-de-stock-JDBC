@@ -184,66 +184,33 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 			JOptionPane.showMessageDialog(this, "Por favor, elije un item");
 			return;
 		}
-		try {
-			Integer row = tabla.getSelectedRow();
-			Integer column = tabla.getSelectedColumn();
-			if ((row != null) & (column != null)) {
-				Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
-						.ifPresentOrElse(fila -> {
-							// Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
-							Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-							String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
-							String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
-							Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
-							llenarCasillas(nombre, descripcion, cantidad);
-							int cantidadUpdated = 0;
-							try {
-								cantidadUpdated = this.productoController.modificar(nombre, descripcion, cantidad, id);
-							} catch (SQLException e) {
-								// TODO Auto-generated catch block
-								// e.printStackTrace();
-								throw new RuntimeException(e);
-							}
-							// JOptionPane.showMessageDialog(this, cantidadUpdated+" Item Actualizado con
-							// éxito!");
-							JOptionPane.showMessageDialog(this,
-									String.format("%d item modificado con éxito!", cantidadUpdated));
-
-						}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
-			}
-		} catch (ArrayIndexOutOfBoundsException e) {
-			e.printStackTrace();
-		}
+			Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
+					.ifPresentOrElse(fila -> {
+					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
+					String nombre = (String) modelo.getValueAt(tabla.getSelectedRow(), 1);
+					String descripcion = (String) modelo.getValueAt(tabla.getSelectedRow(), 2);
+					Integer cantidad = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 3).toString());
+					var filasModificadas = this.productoController.modificar(nombre, descripcion, cantidad, id);
+					JOptionPane.showMessageDialog(this,
+							String.format("%d item modificado con éxito!", filasModificadas));
+				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+			//}
 	}
 
-	private void llenarCasillas(String nombre, String descripcion, Integer cantidad) {
-		this.textoNombre.setText(nombre);
-		this.textoDescripcion.setText(descripcion);
-		this.textoCantidad.setText(cantidad.toString());
-	}
 
 	private void eliminar() {
 		if (tieneFilaElegida()) {
 			JOptionPane.showMessageDialog(this, "Por favor, elije un item");
 			return;
 		}
-
 		Optional.ofNullable(modelo.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
 				.ifPresentOrElse(fila -> {
-					// Integer id = (Integer) modelo.getValueAt(tabla.getSelectedRow(), 0);
 					Integer id = Integer.valueOf(modelo.getValueAt(tabla.getSelectedRow(), 0).toString());
-					int cantidadEliminada = 0;
-					try {
-						cantidadEliminada = this.productoController.eliminar(id);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						// e.printStackTrace();
-						throw new RuntimeException(e);
-					}
+					var filasEliminadas = this.productoController.eliminar(id);
 
 					modelo.removeRow(tabla.getSelectedRow());
 
-					JOptionPane.showMessageDialog(this, cantidadEliminada + " Item eliminado con éxito!");
+					JOptionPane.showMessageDialog(this, filasEliminadas + " Item eliminado con éxito!");
 
 				}, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
 	}
@@ -270,13 +237,6 @@ public class ControlDeStockFrame extends javax.swing.JFrame {
 					.format("El campo cantidad debe ser numérico dentro del rango %d y %d.", 0, Integer.MAX_VALUE));
 			return;
 		}
-
-		// TODO
-		// arreglos con HASHMAP video INSERT WITH STATEMENT
-//		var producto = new HashMap<String, String>();
-//		producto.put("NOMBRE", textoNombre.getText());
-//		producto.put("DESCRIPCION", textoDescripcion.getText());
-//		producto.put("CANTIDAD", String.valueOf(cantidadInt));
 
 		var producto = new Producto(textoNombre.getText(), textoDescripcion.getText(), cantidadInt);
 
