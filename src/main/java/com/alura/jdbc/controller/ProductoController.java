@@ -6,7 +6,7 @@ import com.alura.jdbc.dao.ProductoDAO;
 import com.alura.jdbc.factory.ConnectionFactory;
 import com.alura.jdbc.modelo.Producto;
 
-public class ProductoController {
+public class ProductoController{
 
 	private ProductoDAO productoDAO;
 	

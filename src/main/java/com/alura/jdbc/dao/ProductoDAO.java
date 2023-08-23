@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.alura.jdbc.modelo.Producto;
 
 // esta va en productoController
@@ -18,9 +19,9 @@ public class ProductoDAO {
 	final private Connection con;
 
 	public ProductoDAO(Connection con) {
-		this.con = con;
+		//super();
+		this.con =con;
 	}
-
 	// quitar guardar(Producto producto) throws SQLException
 	public void guardar(Producto producto) {
 		try (con) {
