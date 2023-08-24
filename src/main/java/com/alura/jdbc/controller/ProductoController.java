@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.alura.jdbc.dao.ProductoDAO;
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.modelo.Categoria;
 import com.alura.jdbc.modelo.Producto;
 
 public class ProductoController {
@@ -30,11 +31,16 @@ public class ProductoController {
 		return this.productoDAO.listar();
 	}
 
+	public List<Producto> listar(Categoria categoria){
+		return this.productoDAO.listar(categoria.getID());
+	}
+
 	// Object producto, SE CAMBIA POR HASHMAP
 	// luego se cambio hashMap por la clase producto
 	//                  Map<String, String> x la clase Producto
 	// se quito guardar(Producto producto) throws SQLException
-	public void guardar(Producto producto) {
+	public void guardar(Producto producto, Integer categoriaID ) {
+		producto.setCategoriaID(categoriaID);
 		productoDAO.guardar(producto);
 	}	
 
