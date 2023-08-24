@@ -27,12 +27,13 @@ public class ProductoDAO {
 		try (con) {
 			// con.setAutoCommit(false); // control transacc la tenemos nosotros
 			final PreparedStatement statement = con.prepareStatement(
-					"INSERT INTO PRODUCTO " + "(nombre, descripcion, cantidad)" + " VALUES (?,?,?)",
+					"INSERT INTO PRODUCTO " + "(nombre, descripcion, cantidad, categoria_id)" + " VALUES (?,?,?,?)",
 					Statement.RETURN_GENERATED_KEYS);
 			try (statement) {
 				statement.setString(1, producto.getNombre());
 				statement.setString(2, producto.getDescripcion());
 				statement.setInt(3, producto.getCantidad());
+				statement.setInt(4, producto.getCategoriaID());
 				statement.execute();
 				final ResultSet resultSet = statement.getGeneratedKeys();
 				try (resultSet) {
@@ -112,6 +113,36 @@ public class ProductoDAO {
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	// es el mismo de LIST
+	public List<Producto> listar(Integer categoriaID) {
+List<Producto> resultado = new ArrayList<>();
+		
+		try (con) {
+			String SQL = "SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD "
+					+ "FROM PRODUCTO "
+					+ " WHERE CATEGORIA_ID=? ";
+			final PreparedStatement statement = con.prepareStatement(SQL);
+
+			try (statement) {
+				statement.setInt(1, categoriaID);
+				statement.execute();
+				
+				final ResultSet resultSet = statement.getResultSet();
+				while (resultSet.next()) {
+					Producto fila = new Producto(
+							resultSet.getInt("ID"), 
+							resultSet.getString("NOMBRE"),
+							resultSet.getString("DESCRIPCION"), 
+							resultSet.getInt("CANTIDAD"));
+						resultado.add(fila);
+				} // while
+			} // statement
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+		return resultado;
 	}
 
 }
